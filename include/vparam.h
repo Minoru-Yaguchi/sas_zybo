@@ -1,0 +1,132 @@
+// ***************************************************************************
+// **       Copyright (c) 2008 - 2014 ATRJ LLC.  All rights reserved.       **
+// **                                                                       **
+// ** Advanced Technology Research Japan, LLC.(ATRJ)                        **
+// ** ATRJ IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS"           **
+// ** BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS ONE POSSIBLE        **
+// ** IMPLEMENTATION OF THIS FEATURE, APPLICATION OR STANDARD, ATRJ IS      **
+// ** MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION IS FREE FROM        **
+// ** ANY CLAAPT OF INFRINGEMENT, AND YOU ARE RESPONSIBLE FOR OBTAINING     **
+// ** ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.  ATRJ EXPRESSLY   **
+// ** DISCLAAPT ANY WARRANTY WHATSOEVER WITH RESPECT TO THE ADEQUACY        **
+// ** OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES    **
+// ** OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE FROM CLAAPT OF    **
+// ** INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       **
+// ** FOR A PARTICULAR PURPOSE.                                             **
+// **                                                                       **
+// ***************************************************************************
+
+#ifndef VPARAM_H_
+#define VPARAM_H_
+
+//for 1080P
+#define HD1080_HVALID		1920
+#define HD1080_HPULSE		44
+#define HD1080_HBPORCH		148
+#define HD1080_HFPORCH		88
+#define HD1080_VVALID		1080
+#define HD1080_VPULSE		5
+#define HD1080_VBPORCH 	36
+#define HD1080_VFPORCH 	4
+#define HD1080_VPOLARITY	1
+#define HD1080_HPOLARITY	1
+#define HD1080_DHVALID		1920
+
+//for 720P
+#define HD720_HVALID		1280
+#define HD720_HPULSE		80
+#define HD720_HBPORCH		216
+#define HD720_HFPORCH		72
+#define HD720_HPOLARITY	1
+#define HD720_VVALID		720
+#define HD720_VPULSE		5
+#define HD720_VBPORCH 		22
+#define HD720_VFPORCH 		3
+#define HD720_VPOLARITY	1
+#define HD720_DHVALID		1280
+
+// SXGA
+#define SXGA_HVALID		1280
+#define SXGA_HPULSE		112
+#define SXGA_HBPORCH		248
+#define SXGA_HFPORCH		48
+#define SXGA_HPOLARITY		0
+#define SXGA_VVALID		1024
+#define SXGA_VPULSE		3
+#define SXGA_VBPORCH		38
+#define SXGA_VFPORCH 		1
+#define SXGA_VPOLARITY		0
+
+//for XGA 70Hz
+#define XGA70_HVALID		1024
+#define XGA70_HPULSE		136
+#define XGA70_HBPORCH		144
+#define XGA70_HFPORCH		24
+#define XGA70_HPOLARITY	0
+#define XGA70_VVALID		768
+#define XGA70_VPULSE		6
+#define XGA70_VBPORCH		29
+#define XGA70_VFPORCH		3
+#define XGA70_VPOLARITY	0
+
+// XGA 60Hz
+#define XGA60_HVALID		1024
+#define XGA60_HPULSE		136
+#define XGA60_HBPORCH		160
+#define XGA60_HFPORCH		24
+#define XGA60_HPOLARITY	0
+#define XGA60_VVALID		768
+#define XGA60_VPULSE		6
+#define XGA60_VBPORCH 		29
+#define XGA60_VFPORCH 		3
+#define XGA60_VPOLARITY	0
+
+// SVGA 60Hz
+#define SVGA_HVALID		800
+#define SVGA_HPULSE		128
+#define SVGA_HBPORCH		88
+#define SVGA_HFPORCH		40
+#define SVGA_HPOLARITY		1
+#define SVGA_VVALID		600
+#define SVGA_VPULSE		4
+#define SVGA_VBPORCH 		23
+#define SVGA_VFPORCH 		1
+#define SVGA_VPOLARITY		1
+
+// UVGA 60Hz
+#define UVGA_HVALID		800
+#define UVGA_HPULSE		48
+#define UVGA_HBPORCH		40
+#define UVGA_HFPORCH		148
+#define UVGA_HPOLARITY		0
+#define UVGA_VVALID		480
+#define UVGA_VPULSE		3
+#define UVGA_VBPORCH 		29
+#define UVGA_VFPORCH 		134
+#define UVGA_VPOLARITY		0
+
+// 4K2K
+#define HD4K2K_HVALID		(HD1080_HVALID * 2 / 4)
+#define HD4K2K_HPULSE		(HD1080_HPULSE * 2 / 4)
+#define HD4K2K_HBPORCH	(HD1080_HBPORCH * 2 / 4)
+#define HD4K2K_HFPORCH	(HD1080_HFPORCH * 2 / 4)
+#define BDX_VVALID		(HD1080_VVALID * 2)
+#define HD4K2K_VPULSE		(HD1080_VPULSE * 2)
+#define HD4K2K_VBPORCH	(HD1080_VBPORCH * 2)
+#define HD4K2K_VFPORCH	(HD1080_VFPORCH * 2)
+#define HD4K2K_VPOLARITY	HD1080_VPOLARITY
+#define HD4K2K_HPOLARITY	HD1080_HPOLARITY
+
+// 5K4K
+#define HD5K4K_HVALID		(SXGA_HVALID * 4 / 8)
+#define HD5K4K_HPULSE		(SXGA_HPULSE * 4 / 8)
+#define HD5K4K_HBPORCH	(SXGA_HBPORCH * 4 / 8)
+#define HD5K4K_HFPORCH	(SXGA_HFPORCH * 4 / 8)
+#define HD5K4K_VVALID		(SXGA_VVALID * 4)
+#define HD5K4K_VPULSE		(SXGA_VPULSE * 4)
+#define HD5K4K_VBPORCH	(SXGA_VBPORCH * 4)
+#define HD5K4K_VFPORCH	(SXGA_VFPORCH * 4)
+#define HD5K4K_VPOLARITY	SXGA_VPOLARITY
+#define HD5K4K_HPOLARITY	SXGA_HPOLARITY
+
+#endif /* VPARAM_H_ */

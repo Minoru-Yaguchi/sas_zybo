@@ -1,0 +1,88 @@
+/*
+	motor driver headder file
+*/
+
+#define MNEMONIC_SET_PARAM	(0b000 << 5)	/* following 1 to 3 bytes (VALUE) */
+#define MNEMONIC_GET_PARAM	(0b001 << 5)	/* following 3 bytes (NOP) */
+#define MNEMONIC_RUN		(0b010 << 5)	/* following 3 bytes (SPD) */
+#define MNEMONIC_STEP_CLOC	(0b010 << 5)
+#define MNEMONIC_MOVE		(0b010 << 5)	/* following X bytes (N_STEP) */
+#define MNEMONIC_GOTO		(0b011 << 5)	/* following 3 bytes (ABS_POS) */
+#define MNEMONIC_GOTO_DIR	(0b011 << 5)	/* following 3 bytes (ABS_POS) */
+#define MNEMONIC_GO_UNTIL	(0b100 << 5)	/* following 3 bytes (SPD) */
+#define MNEMONIC_RELEASE_SW	(0b100 << 5)
+#define MNEMONIC_GO_HOME	(0b011 << 5)
+#define MNEMONIC_GO_MARK	(0b011 << 5)
+#define MNEMONIC_RESET_POS	(0b110 << 5)
+#define MNEMONIC_RESET_DEVICE	(0b110 << 5)
+#define MNEMONIC_SOFT_STOP	(0b101 << 5)
+#define MNEMONIC_HARD_STOP	(0b101 << 5)
+#define MNEMONIC_SOFT_HIZ	(0b101 << 5)
+#define MNEMONIC_HARD_HIZ	(0b101 << 5)
+#define MNEMONIC_GET_STATUS	(0b110 << 5)
+#define MOTOR_BIT4		(1 << 4)
+#define MOTOR_BIT3		(1 << 3)
+#define MOTOR_BIT2TO1		(0b01 << 1)
+#define MOTOR_BIT0		(1 << 0)
+#define REGISTER_ABS_POS	(0x01)
+#define REGISTER_EL_POS		(0x02)
+#define REGISTER_MARK		(0x03)
+#define REGISTER_SPEED		(0x04)
+#define REGISTER_ACC		(0x05)
+#define REGISTER_DEC		(0x06)
+#define REGISTER_MAX_SPEED	(0x07)
+#define REGISTER_MIN_SPEED	(0x08)
+#define REGISTER_FS_SPD		(0x15)
+#define REGISTER_KVAL_HOLD	(0x09)
+#define REGISTER_KVAL_RUN	(0x0A)
+#define REGISTER_KVAL_ACC	(0x0B)
+#define REGISTER_KVAL_DEC	(0x0C)
+#define REGISTER_INT_SPEED	(0x0D)
+#define REGISTER_ST_SLP		(0x0E)
+#define REGISTER_FN_SLP_ACC	(0x0F)
+#define REGISTER_FN_SLP_DEC	(0x10)
+#define REGISTER_K_THERM	(0x11)
+#define REGISTER_ADC_OUT	(0x12)
+#define REGISTER_OCD_TH		(0x13)
+#define REGISTER_STALL_TH	(0x14)
+#define REGISTER_STEP_MODE	(0x16)
+#define REGISTER_ALARM_EN	(0x17)
+#define REGISTER_CONFIG		(0x18)
+#define REGISTER_STATUS		(0x19)
+#define MOT_STATUS_MASK		(0b11 << 5)
+#define MOT_STATUS_CONST_SPD	(0b11)
+#define MOT_STATUS_DEC		(0b10)
+#define MOT_STATUS_ACC		(0b01)
+#define MOT_STATUS_STOP		(0b00)
+
+#define MOTOR_READ_MAX_SPEED	(MNEMONIC_GET_PARAM | REGISTER_MAX_SPEED)
+
+#define MOTOR_COMMAND_RUN	(MNEMONIC_RUN | MOTOR_BIT4 | MOTOR_BIT0)
+#define MOTOR_COMMAND_STOP	(MNEMONIC_SOFT_STOP | MOTOR_BIT4)
+#define MOTOR_COMMAND_GETSTATUS	(MNEMONIC_GET_STATUS | MOTOR_BIT4)
+
+#define MOTOR_GOTO_FORWARD	(MNEMONIC_GOTO_DIR | MOTOR_BIT3 | MOTOR_BIT0)
+
+#define MOTOR_COMMAND_GO_MARK	(MNEMONIC_GO_MARK | MOTOR_BIT4 | MOTOR_BIT3)
+#define MOTOR_COMMAND_GO_HOME	(MNEMONIC_GO_HOME | MOTOR_BIT4)
+
+#define MOTOR_COMMAND_RUN_P	(MNEMONIC_RUN | MOTOR_BIT4 | MOTOR_BIT0)
+#define MOTOR_COMMAND_RUN_N	(MNEMONIC_RUN | MOTOR_BIT4)
+
+#define MOTOR_COMMAND_SOFTSTOP	(MNEMONIC_SOFT_STOP | MOTOR_BIT4)
+#define MOTOR_COMMAND_HARDSTOP	(MNEMONIC_HARD_STOP | MOTOR_BIT4 | MOTOR_BIT3)
+
+#define MOTOR_SET_SPEED		(0x0100)	/* 15.26pps */
+#define MOTOR_SET_STEP		(0xFF03)	/* micro step mode */
+#define MOTOR_SET_HOLD_KVAL	(0x11)		/* 150mA */
+#define MOTOR_SET_CONSTANT_KVAL	(0x11)		/* 150mA */
+#define MOTOR_SET_ACC_KVAL	(0x11)		/* 150mA */
+#define MOTOR_SET_DEC_KVAL	(0x11)		/* 150mA */
+
+#define MOTOR_SET_MARK_P90DEG	(0x001900)	/* +90degree (+6400step) */
+#define MOTOR_SET_MARK_N90DEG	(0xFFE63F)	/* -90degree (-6400step) */
+
+#define MOTOR_MIN_SPEED		MOTOR_SET_SPEED
+#define MOTOR_MAX_SPEED		(0x4100)	/* default max speed */
+#define MOTOR_SPD_CHG_STEP	(0x0100)
+

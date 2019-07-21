@@ -70,7 +70,7 @@ int main(void)
 		}
 
 		// 測距センサー検知無し
-		if (buf[disappear_object] == -1) {
+		if (buf[disappear_object] == 1) {
 			status = initialize;					// 初期状態へ
 		} else {
 			// 状態遷移

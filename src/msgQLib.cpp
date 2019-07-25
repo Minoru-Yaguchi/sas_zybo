@@ -21,11 +21,11 @@ MSG_Q_ID msgQCreate(int maxMsgs, int maxMsgLength)
 		return NULL;
 	}
 
-	/* ���b�Z�[�W�L���[�̖��O����� */
+	/* メッセージキューの名前を作る */
 	l_MyThreadID = (unsigned int)pthread_self();
 	snprintf(lp_MsgID->msgQName, PATH_MAX, "/%u_%u", l_MyThreadID, ++ul_MqSerialNo);
 
-	/* ���b�Z�[�W�L���[�̑��� */
+	/* メッセージキューの属性 */
 	s_Attr.mq_maxmsg  = maxMsgs;
 	s_Attr.mq_msgsize = maxMsgLength;
 	s_Attr.mq_flags   = 0;
@@ -37,7 +37,7 @@ MSG_Q_ID msgQCreate(int maxMsgs, int maxMsgLength)
 
 
 	if ( lp_MsgID->mq_id == (mqd_t)-1 ) {
-		/* �A�v���ė����グ����open�G���[�h�~ */
+		/* アプリ再立ち上げ時のopenエラー防止 */
 		mq_unlink(lp_MsgID->msgQName);
 		lp_MsgID->mq_id = mq_open(lp_MsgID->msgQName,
 								O_CREAT|O_EXCL|O_RDWR,
@@ -63,6 +63,7 @@ int msgQDelete(MSG_Q_ID msgQId)
 	mq_close(msgQId->mq_id);
 	mq_unlink(msgQId->msgQName);
 	free(msgQId);
+	return 0;
 }
 
 int msgQSend(MSG_Q_ID msgQId, char *buffer, int nBytes)
@@ -81,12 +82,12 @@ int msgQSend(MSG_Q_ID msgQId, char *buffer, int nBytes)
 		return -1;
 	}
 	
-	/* ���b�Z�[�W�T�C�Y���h�~ */
+	/* メッセージサイズ溢れ防止 */
 	if ( nBytes > attr.mq_msgsize ) {
 		printf("send size over(%d:%ld)\n", nBytes, attr.mq_msgsize);
 		nBytes = (int)attr.mq_msgsize;
 	}
-	/* ���b�Z�[�W�T�C�Y���قȂ�ꍇ�ɂ̓��O�ǉ� */
+	/* メッセージサイズが異なる場合にはログ追加 */
 	else if ( nBytes != attr.mq_msgsize ) {
 //		printf("send size less(%d:%ld)\n", nBytes, attr.mq_msgsize);
 	}
@@ -100,32 +101,32 @@ int msgQSend(MSG_Q_ID msgQId, char *buffer, int nBytes)
 		switch (errno) {
 		/**
 		 * EINTR
-		 * �֐��Ăяo�����V�O�i���n���h���ɂ�钆�f 
-		 *  -> ���g���C 
+		 * 関数呼び出しがシグナルハンドラによる中断 
+		 *  -> リトライ 
 		 **/
 		case EINTR:
 			i_Ret = 0;
 			break;
 		/**
 		 * ETIMEDOUT
-		 * �^�C���A�E�g 
+		 * タイムアウト 
 		 **/
 		case ETIMEDOUT:
 			break;
 		/**
 		 * EAGAIN
-		 * �L���[�t��(O_NONBLOCK�w��̂Ƃ��̂�)
-		 * NONBLOCK���g��Ȃ��̂ŃG���[ 
+		 * キューフル(O_NONBLOCK指定のときのみ)
+		 * NONBLOCKを使わないのでエラー 
 		 **/
 		case EAGAIN:
 			break;
 		/**
 		 * EMSGSIZE
-		 * ���M�T�C�Y�̕����傫�������ꍇ 
-		 * �L���[�̍ő�T�C�Y���ɍ��킹�� 
+		 * 送信サイズの方が大きかった場合 
+		 * キューの最大サイズ分に合わせる 
 		 **/
 		case EMSGSIZE:
-			/* ���łɃ��T�C�Y�ς݂̂��߃G���[ */
+			/* すでにリサイズ済みのためエラー */
 			break;
 		default:
 			printf("(%p) unknown errno=%d tid=0x%lx\n",
@@ -164,32 +165,32 @@ int msgQReceive(MSG_Q_ID msgQId, char *buffer, int maxNBytes)
 		switch (errno) {
 		/**
 		 * EINTR
-		 * �֐��Ăяo�����V�O�i���n���h���ɂ�钆�f 
-		 *  -> ���g���C 
+		 * 関数呼び出しがシグナルハンドラによる中断 
+		 *  -> リトライ 
 		 **/
 		case EINTR:
 			i_Ret = 0;
 			break;
 		/**
 		 * ETIMEDOUT
-		 * �^�C���A�E�g 
+		 * タイムアウト 
 		 **/
 		case ETIMEDOUT:
 			break;
 		/**
 		 * EAGAIN
-		 * �L���[����(O_NONBLOCK�w��̂Ƃ��̂�)
-		 * NONBLOCK���g��Ȃ��̂ŃG���[ 
+		 * キューが空(O_NONBLOCK指定のときのみ)
+		 * NONBLOCKを使わないのでエラー 
 		 **/
 		case EAGAIN:
 			break;
 		/**
 		 * EMSGSIZE
-		 * ��M�T�C�Y�������������ꍇ�A�e���|�����o�b�t�@�� 
-		 * ����Ď�M��A�\���T�C�Y���R�s�[ 
+		 * 受信サイズが小さかった場合、テンポラリバッファを 
+		 * 作って受信後、申請サイズ分コピー 
 		 **/
 		case EMSGSIZE:
-			/* ���łɃ��T�C�Y�ς݂�2��ڂ̓G���[ */
+			/* すでにリサイズ済みの2回目はエラー */
 			if ( tmpbuf != buffer )
 				break;
 

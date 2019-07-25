@@ -53,13 +53,18 @@ int motor_initialize()
 	spibuf |= 0x0000FF00 & (MOTOR_SET_DEC_KVAL << 8);
 	ret = write(spi_fd, &spibuf, 2);
 
-    return 0;
+	if (ret == -1) {
+		return ret;
+	} else {
+		ret = 0;
+	}
+
+    return ret;
 }
 
 void motor_open() {
 	unsigned int spibuf = 0;
 	int ret = 0;
-    printf("DOOR OPEN!!!!\n");
 
     /* open (moving 90 positive degree) */
     spibuf  = 0x000000FF & MNEMONIC_GOTO;
@@ -67,6 +72,10 @@ void motor_open() {
     // spibuf  = 0x000000FF & MOTOR_GOTO_FORWARD;
     // spibuf |= 0xFFFFFF00 & (0x0007D0 << 8);
     ret = write(spi_fd, &spibuf, 4);
+
+	if (ret == -1) {
+		printf("spi error\n");
+	}
 
     return;
 }
@@ -78,6 +87,10 @@ void motor_close() {
     /* close (moving home position) */
     spibuf = 0x000000FF & MOTOR_COMMAND_GO_HOME;
     ret = write(spi_fd, &spibuf, 1);
+
+	if (ret == -1) {
+		printf("spi error\n");
+	}
 
     return;
 }

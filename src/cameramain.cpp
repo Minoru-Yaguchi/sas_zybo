@@ -98,15 +98,28 @@ int ishuman() {
 	int ret = msgQSend(cam_msg, buf, sizeof(buf));
 	if (ret) {
 		printf("ishuman msg send error\n");
-		return NULL;
+		return -1;
 	}
 	return 0;
 }
 
+#if 1
 int take_picture() {
 	taking = true;
 	return 0;
 }
+#else
+extern 
+int take_picture() {
+	int width_img  = cdev->getImageWidth();		// 主走査サイズを取得
+	int height_img = cdev->getImageHeight();	// 副走査サイズを取得
+	unsigned char* colptr = new unsigned char[width_img * height_img * 3];
+
+	cdev->readCamera(colptr);
+	writeJpegFormat(colptr, width_img, height_img, "./output/test_col_" + std::to_string(num) + ".jpg");
+	return 0;
+}
+#endif
 
 int change_recog() {
 	recog_ok = true;
@@ -172,8 +185,13 @@ void* cameramain(void* arg)
 	unsigned short *HogBin = new unsigned short[Cell_X * Cell_Y];
 
 
+#if 0
 	/* 処理時間測定用 */
     struct timeval st0, et0;
+#else
+	/* 処理時間測定用 */
+    struct timeval st0;
+#endif
 
 	while( 1 ) {
 		if (!progressing) {
@@ -223,11 +241,13 @@ void* cameramain(void* arg)
 		}
 #endif 	//__OUTPUT_FILE__
 
+#if 0
 		/* 各フレームごとに処理時間を表示 */
 		gettimeofday(&et0, NULL);
 		double time = (et0.tv_sec - st0.tv_sec) + (et0.tv_usec - st0.tv_usec)*1.0E-6;
 		float  fps = 1.0f / time;
-		//printf("Flame Process Time : %5.3lf [s]\tFPS : %5.3f [fps]\n", time, fps);
+		printf("Flame Process Time : %5.3lf [s]\tFPS : %5.3f [fps]\n", time, fps);
+#endif
 	}
 	
 	/* 確保領域のメモリ開放 */

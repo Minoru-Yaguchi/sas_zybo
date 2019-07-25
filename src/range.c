@@ -388,6 +388,7 @@ static void * ranging(void * arg)
 #if 0
 				sleep(5);			// ドアが開き切るまでwait
 #else
+				// ドアが開ききるまでメッセージを送信しない
 				open_wait++;
 				if (open_wait >= OPEN_WAIT_TIME) {
 					buf[open_result] = true;
@@ -417,9 +418,13 @@ static void * ranging(void * arg)
 			has_taken = OFF;
 		}
 
+#if 0
 		// 写真準備指示がある場合、ベストショット距離かどうかを監視し、範囲内に来たら通知する
-//		if (picture && (BESTSHOT_LOWER_LIMIT < range_datas.RangeMilliMeter && range_datas.RangeMilliMeter < BESTSHOT_UPPER_LIMIT)) {
+		if (picture && (BESTSHOT_LOWER_LIMIT < range_datas.RangeMilliMeter && range_datas.RangeMilliMeter < BESTSHOT_UPPER_LIMIT)) {
+#else
+		// 写真準備指示がある場合、ベストショット距離より手前にいれば通知する
 		if (picture && (range_datas.RangeMilliMeter < BESTSHOT_UPPER_LIMIT)) {
+#endif
 			buf[taking_now] = true;
 			ret = msgQSend(sas_msg, buf, sizeof(buf));
 			if (ret) {

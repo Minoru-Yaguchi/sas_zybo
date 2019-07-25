@@ -77,7 +77,6 @@ int main(void)
 			switch (status) {
 				// 初期状態
 				case initialize:
-				printf("initialize!\n");
 					// 測距センサー検知あり
 					if (buf[detect_result]) {
 						printf("initialize detect sensor\n");
@@ -89,7 +88,6 @@ int main(void)
 					break;
 				// 処理開始
 				case start_process:
-				printf("start_process!\n");
 					// ドア開距離計算＆人物検知完了(多分同時に来るケース無し)
 					if (buf[calculate_result] && buf[recognize_result]) {
 						printf("calc ok and human exist!\n");
@@ -108,7 +106,6 @@ int main(void)
 					break;
 				// 人物検知待ち
 				case wait_detect:
-				printf("wait_detect!\n");
 					if (buf[recognize_result]) {
 						printf("human exist\n");
 						status = approval_open;		// ドア開許可
@@ -116,7 +113,6 @@ int main(void)
 					break;
 				// ドア開距離計算待ち
 				case wait_calculate:
-				printf("wait_calculate!\n");
 					if (buf[calculate_result]) {
 						printf("calc ok\n");
 						status = approval_open;		// ドア開許可
@@ -128,7 +124,6 @@ int main(void)
 					break;
 				// ドア開許可
 				case approval_open:
-				printf("approval_open!\n");
 					if (buf[open_result]) {
 						printf("door opened!\n");
 						status = wait_close;		// ドア閉指示
@@ -140,7 +135,6 @@ int main(void)
 					break;
 				// ドア閉指示
 				case wait_close:
-				printf("wait_close!\n");
 					if (buf[close_result]) {
 						printf("door closed\n");
 						status = initialize;		// 初期状態へ

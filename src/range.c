@@ -75,10 +75,11 @@ enum range_state {
 int range_status = initial;
 #define ON 1
 #define OFF 0
-#define SAMPLE_NUM 10
-#define SAMPLE_INT 30
+#define SAMPLE_NUM 5
+#define SAMPLE_INT 20
 #define MAX_NEGATIVE 5
 #define TOLERANCE 5
+#define AVERAGE_NUM 10
 static void * ranging(void * arg);
 static int initial_flag = 0;
 static int mode = 0;
@@ -176,6 +177,8 @@ static void * ranging(void * arg)
     int sample_prev = 0;
     int sample_diff = 0;
     int average = 0;
+	int average_count = 0;
+	int micro_average = 0;
 	int negative_count = 0;
 
 	fd = open("/dev/stmvl53l0x_ranging",O_RDWR | O_SYNC);
@@ -288,7 +291,7 @@ static void * ranging(void * arg)
 	// データ取得開始
 	while (1)
 	{
-        // 測距間隔は30ms
+        // 測距間隔はSAMPLE_INT
 		usleep(SAMPLE_INT * 1000);
 		ioctl(fd, VL53L0X_IOCTL_GETDATAS,&range_datas);
 
@@ -313,32 +316,44 @@ static void * ranging(void * arg)
 
         // ドア開タイミング計算
         // 本モードでは測距データを10区間サンプリングし、平均移動距離からドアを開けるタイミング(距離)を決定する
+		// ミクロで見るとセンサー値が前後するため、数区間(AVERAGE_NUM分)の平均値を用いることとする
         if (range_status == speed) {
-            if (sample_count == 0) {
-                sample_prev = range_datas.RangeMilliMeter;
-				printf("sample start!\n");
-            } else if (sample_count > 0) {
-				if (sample_prev > range_datas.RangeMilliMeter) {
-					printf("sample count%d\n", sample_count);
-					sample_diff += (sample_prev - range_datas.RangeMilliMeter);
-					sample_prev = range_datas.RangeMilliMeter;
-					negative_count = 0;
-				} else {
-					printf("negative direction! prev=%d crnt=%d\n", sample_prev, range_datas.RangeMilliMeter);
-					negative_count++;
-					sample_count--;
-					// 5サンプル以上前進がなかった場合は計算やり直し
-					if (negative_count > MAX_NEGATIVE) {
-						sample_count = -1;
-						negative_count = 0;
-						sample_diff = 0;
-					}
-				}
-			} else {
-				printf("??? %d\n", sample_count);
+			if (average_count < AVERAGE_NUM) {
+				micro_average += range_datas.RangeMilliMeter;
+				average_count++;
 			}
-			printf("sample data[%d] = %d  diff = %d\n", sample_count, range_datas.RangeMilliMeter, sample_diff);
-            sample_count++;
+			// サンプル区間の平均が取れたら平均移動距離計算に投入する
+			if (average_count == AVERAGE_NUM) {
+				micro_average /= AVERAGE_NUM;
+				average_count = 0;
+				if (sample_count == 0) {
+					sample_prev = micro_average;
+					printf("sample start!\n");
+				} else if (sample_count > 0) {
+					// ひとつ前のサンプルとの差分を蓄積
+					if (sample_prev > micro_average) {
+						printf("sample count%d\n", sample_count);
+						sample_diff += (sample_prev - micro_average);
+						sample_prev = micro_average;
+						negative_count = 0;
+					} else {
+						printf("negative direction! prev=%d crnt=%d\n", sample_prev, micro_average);
+						negative_count++;
+						sample_count--;
+						// ある程度の区間(MAX_NEGATIVE分)以上前進がなかった場合は計算やり直し
+						if (negative_count > MAX_NEGATIVE) {
+							sample_count = -1;
+							negative_count = 0;
+							sample_diff = 0;
+						}
+					}
+				} else {
+					printf("??? %d\n", sample_count);
+				}
+				printf("sample data[%d] = %d  diff = %d\n", sample_count, range_datas.RangeMilliMeter, sample_diff);
+				sample_count++;
+			}
+			// 所定のデータ量蓄積出来たら平均値を計算
             if (sample_count == SAMPLE_NUM) {
                 average = sample_diff / (SAMPLE_NUM - 1);
                 buf[calculate_result] = true;
@@ -360,6 +375,7 @@ static void * ranging(void * arg)
 			if ((open_timing - TOLERANCE) < range_datas.RangeMilliMeter && (range_datas.RangeMilliMeter < open_timing + TOLERANCE)) {
 				motor_open();
 				buf[open_result] = true;
+				sleep(5);			// ドアが開き切るまでwait
                 ret = msgQSend(sas_msg, buf, sizeof(buf));
                 if (ret) {
                     printf("ranging door open msg send error\n");
@@ -394,9 +410,13 @@ static void * ranging(void * arg)
 			has_taken = ON;
 			buf[taking_now] = 0;
 		}
-
+#if 0
 		fprintf(stderr," VL53L0 Range Data:%d, error status:0x%x, signalRate_mcps:%d, Amb Rate_mcps:%d  %d\n",
 				range_datas.RangeMilliMeter, range_datas.RangeStatus, range_datas.SignalRateRtnMegaCps, range_datas.AmbientRateRtnMegaCps, range_status);
+#else
+		//printf("%d\n", range_datas.RangeMilliMeter);
+#endif
+
 	}
 	close(fd);
     return NULL;

@@ -220,6 +220,7 @@ void detectpeople(unsigned char* colptr, unsigned char* gryptr, unsigned char* g
                         return;
                     }
                     recog_ok = true;
+                    printf("+++++++++ RECOGNIZE OK!! ++++++++++\n");
                 }
             }
         }

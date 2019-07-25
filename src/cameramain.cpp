@@ -22,6 +22,7 @@ extern "C" {
 #define LOOP_COUNT 20
 
 extern MSG_Q_ID sas_msg;
+MSG_Q_ID cam_msg;
 enum msg_num{
 	detect_result = 0,
 	calculate_result,
@@ -29,10 +30,12 @@ enum msg_num{
 	taking_now,
 	open_result,
 	close_result,
+	start_request,
 	disappear_object = 9
 };
 extern int recog_ok;
 int taking = 0;
+int progressing = 0;
 
 /* DDRのメモリ領域 */
 extern unsigned int *frame0;
@@ -73,6 +76,11 @@ void writeJpegFormat(unsigned char* src, size_t width, size_t height, std::strin
 int start_camera(void) {
 	int ret = 0;
     pthread_t pthread;
+	cam_msg = msgQCreate(10, 10);
+	if (!cam_msg) {
+		printf("cam_msg create error...\n");
+		return -1;
+	}
 
 	ret = pthread_create(&pthread, NULL, &cameramain, NULL);
     if (ret) {
@@ -84,7 +92,14 @@ int start_camera(void) {
 }
 
 int ishuman() {
+	char buf[10] = {0};
 	recog_ok = false;
+	buf[start_request] = true;
+	int ret = msgQSend(cam_msg, buf, sizeof(buf));
+	if (ret) {
+		printf("ishuman msg send error\n");
+		return NULL;
+	}
 	return 0;
 }
 
@@ -100,6 +115,7 @@ int change_recog() {
 
 void* cameramain(void* arg)
 {
+	char buf[10] = {0};
 	/*********************************************/
 	/* カメラ制御インスタンス生成 + デバイスの初期化 */
 	/*********************************************/
@@ -160,6 +176,16 @@ void* cameramain(void* arg)
     struct timeval st0, et0;
 
 	while( 1 ) {
+		if (!progressing) {
+			// 人物検知開始はメッセージ受信をトリガとする
+			int ret = msgQReceive(cam_msg, buf, sizeof(buf));
+			if (ret == -1) {
+				printf("cam msg receive error ret=%d\n", ret);
+				break;
+			}
+			progressing = buf[start_request];
+			printf("==================== HOG START!! ======================\n");
+		}
 		gettimeofday(&st0, NULL);
 
 		/* ★★★　カメラ画像のスナップショット取得処理　★★★*/

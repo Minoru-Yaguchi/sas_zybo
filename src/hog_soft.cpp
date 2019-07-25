@@ -211,7 +211,7 @@ void detectpeople(unsigned char* colptr, unsigned char* gryptr, unsigned char* g
                 drawRectangle( colptr, width_img, height_img, x, y, pat );
 
                 // 人物検知OK 暫定でpatが8の場合のみ メッセージを送るのは1回のみにする
-                if (pat == 8 && !recog_ok) {
+                if (pat == 2 && !recog_ok) {
                     char buf[10] = {0};
                     buf[recognize_result] = true;
                     int ret = msgQSend(sas_msg, buf, sizeof(buf));

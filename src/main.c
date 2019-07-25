@@ -145,6 +145,10 @@ int main(void)
 						printf("door closed\n");
 						status = initialize;		// 初期状態へ
 					}
+					if (buf[taking_now]) {
+						printf("take now\n");
+						taking_picture = true;		// ベストショット取得する(状態遷移外)
+					}
 					break;
 				default:
 					printf("abnormal message(%d)\n", status);

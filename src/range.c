@@ -80,6 +80,7 @@ int range_status = initial;
 #define MAX_NEGATIVE 5
 #define TOLERANCE 5
 #define AVERAGE_NUM 10
+#define OPEN_WAIT_TIME (4000 / SAMPLE_INT)
 static void * ranging(void * arg);
 static int initial_flag = 0;
 static int mode = 0;
@@ -180,6 +181,7 @@ static void * ranging(void * arg)
 	int average_count = 0;
 	int micro_average = 0;
 	int negative_count = 0;
+	int open_wait = 0;
 
 	fd = open("/dev/stmvl53l0x_ranging",O_RDWR | O_SYNC);
 	mode = MODE_XTAKCALIB;
@@ -329,6 +331,7 @@ static void * ranging(void * arg)
 				if (micro_average > 3000) {
 					printf("irregular value...\n");
 					sample_count--;
+					negative_count++;
 				}
 				else if (sample_count == 0) {
 					sample_prev = micro_average;
@@ -379,16 +382,25 @@ static void * ranging(void * arg)
 		if (range_status == dooropen) {
 //			if ((open_timing - TOLERANCE) < range_datas.RangeMilliMeter && (range_datas.RangeMilliMeter < open_timing + TOLERANCE)) {
 			if (range_datas.RangeMilliMeter < open_timing) {
-				motor_open();
-				buf[open_result] = true;
+				if (!open_wait) {
+					motor_open();
+				}
+#if 0
 				sleep(5);			// ドアが開き切るまでwait
-                ret = msgQSend(sas_msg, buf, sizeof(buf));
-                if (ret) {
-                    printf("ranging door open msg send error\n");
-                    return NULL;
-                }
-				buf[open_result] = 0;
-				range_status = initial;
+#else
+				open_wait++;
+				if (open_wait >= OPEN_WAIT_TIME) {
+					buf[open_result] = true;
+					ret = msgQSend(sas_msg, buf, sizeof(buf));
+					if (ret) {
+						printf("ranging door open msg send error\n");
+						return NULL;
+					}
+					buf[open_result] = 0;
+					open_wait = 0;
+					range_status = initial;
+				}
+#endif
 			}
 		}
 
@@ -402,10 +414,12 @@ static void * ranging(void * arg)
 				return NULL;
 			}
 			range_status = initial;
+			has_taken = OFF;
 		}
 
 		// 写真準備指示がある場合、ベストショット距離かどうかを監視し、範囲内に来たら通知する
-		if (picture && (BESTSHOT_LOWER_LIMIT < range_datas.RangeMilliMeter && range_datas.RangeMilliMeter < BESTSHOT_UPPER_LIMIT)) {
+//		if (picture && (BESTSHOT_LOWER_LIMIT < range_datas.RangeMilliMeter && range_datas.RangeMilliMeter < BESTSHOT_UPPER_LIMIT)) {
+		if (picture && (range_datas.RangeMilliMeter < BESTSHOT_UPPER_LIMIT)) {
 			buf[taking_now] = true;
 			ret = msgQSend(sas_msg, buf, sizeof(buf));
 			if (ret) {

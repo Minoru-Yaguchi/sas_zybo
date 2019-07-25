@@ -326,7 +326,11 @@ static void * ranging(void * arg)
 			if (average_count == AVERAGE_NUM) {
 				micro_average /= AVERAGE_NUM;
 				average_count = 0;
-				if (sample_count == 0) {
+				if (micro_average > 3000) {
+					printf("irregular value...\n");
+					sample_count--;
+				}
+				else if (sample_count == 0) {
 					sample_prev = micro_average;
 					printf("sample start!\n");
 				} else if (sample_count > 0) {
@@ -350,14 +354,14 @@ static void * ranging(void * arg)
 				} else {
 					printf("??? %d\n", sample_count);
 				}
-				printf("sample data[%d] = %d  diff = %d\n", sample_count, range_datas.RangeMilliMeter, sample_diff);
+				printf("sample data[%d] = %d  diff = %d\n", sample_count, micro_average, sample_diff);
 				sample_count++;
 			}
 			// 所定のデータ量蓄積出来たら平均値を計算
             if (sample_count == SAMPLE_NUM) {
                 average = sample_diff / (SAMPLE_NUM - 1);
                 buf[calculate_result] = true;
-				open_timing = ((1000 / SAMPLE_INT) * average) / 10;  // 到達1秒前に開けるので平均移動距離から1秒間で移動する距離を算出
+				open_timing = ((1000 / SAMPLE_INT) * average);		  // 到達1秒前に開けるので平均移動距離から1秒間で移動する距離を算出
 				printf("average = %d  distance = %d\n", average, buf[1]);
                 ret = msgQSend(sas_msg, buf, sizeof(buf));
                 if (ret) {
@@ -371,8 +375,10 @@ static void * ranging(void * arg)
         }
 
 		// 所定位置まで来ていたらドアを開ける
+		// 既に所定位置を過ぎていてもドアを開ける
 		if (range_status == dooropen) {
-			if ((open_timing - TOLERANCE) < range_datas.RangeMilliMeter && (range_datas.RangeMilliMeter < open_timing + TOLERANCE)) {
+//			if ((open_timing - TOLERANCE) < range_datas.RangeMilliMeter && (range_datas.RangeMilliMeter < open_timing + TOLERANCE)) {
+			if (range_datas.RangeMilliMeter < open_timing) {
 				motor_open();
 				buf[open_result] = true;
 				sleep(5);			// ドアが開き切るまでwait

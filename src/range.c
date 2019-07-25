@@ -414,6 +414,7 @@ static void * ranging(void * arg)
 				printf("ranging door close msg send error\n");
 				return NULL;
 			}
+			buf[close_result] = 0;
 			range_status = initial;
 			has_taken = OFF;
 		}

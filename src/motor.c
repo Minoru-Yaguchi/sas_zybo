@@ -59,40 +59,40 @@ int motor_initialize()
 		ret = 0;
 	}
 
-    return ret;
+	return ret;
 }
 
 void motor_open() {
 	unsigned int spibuf = 0;
 	int ret = 0;
 
-    /* open (moving 90 positive degree) */
-    spibuf  = 0x000000FF & MNEMONIC_GOTO;
-    spibuf |= 0xFFFFFF00 & (MOTOR_SET_MARK_P90DEG << 8);
-    // spibuf  = 0x000000FF & MOTOR_GOTO_FORWARD;
-    // spibuf |= 0xFFFFFF00 & (0x0007D0 << 8);
-    ret = write(spi_fd, &spibuf, 4);
+	/* open (moving 90 positive degree) */
+	spibuf  = 0x000000FF & MNEMONIC_GOTO;
+	spibuf |= 0xFFFFFF00 & (MOTOR_SET_MARK_P90DEG << 8);
+	// spibuf  = 0x000000FF & MOTOR_GOTO_FORWARD;
+	// spibuf |= 0xFFFFFF00 & (0x0007D0 << 8);
+	ret = write(spi_fd, &spibuf, 4);
 
 	if (ret == -1) {
 		printf("spi error\n");
 	}
 
-    return;
+	return;
 }
 
 void motor_close() {
-    unsigned int spibuf = 0;
-    int ret = 0;
+	unsigned int spibuf = 0;
+	int ret = 0;
 
-    /* close (moving home position) */
-    spibuf = 0x000000FF & MOTOR_COMMAND_GO_HOME;
-    ret = write(spi_fd, &spibuf, 1);
+	/* close (moving home position) */
+	spibuf = 0x000000FF & MOTOR_COMMAND_GO_HOME;
+	ret = write(spi_fd, &spibuf, 1);
 
 	if (ret == -1) {
 		printf("spi error\n");
 	}
 
-    return;
+	return;
 }
 
 void motor_set_ultraspeed() {

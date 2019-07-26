@@ -27,6 +27,7 @@ enum msg_num{
 	disappear_object = 9
 };
 int recog_ok = false;
+extern int progressing;
 
 /* HOG用のRGB→Gray変換 */
 void convertRGB2Gray(unsigned char* src, unsigned char* dst, size_t width, size_t height)
@@ -220,6 +221,7 @@ void detectpeople(unsigned char* colptr, unsigned char* gryptr, unsigned char* g
                         return;
                     }
                     recog_ok = true;
+                    progressing = false;
                     printf("+++++++++ RECOGNIZE OK!! ++++++++++\n");
                 }
             }

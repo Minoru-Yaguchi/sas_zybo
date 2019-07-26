@@ -94,11 +94,11 @@ int main(void)
 						status = approval_open;		// ドア開許可
 					// ドア開距離計算が先に完了
 					} else if (buf[calculate_result]) {
-						printf("calc ok\n");
+						printf("calc ok for start_process\n");
 						status = wait_detect;		// 人物検知待ち
 					// 人物検知が先に完了
 					} else if (buf[recognize_result]) {
-						printf("human exist\n");
+						printf("human exist for start_process\n");
 						status = wait_calculate;	// ドア開距離計算待ち
 					} else {
 						printf("other status...\n");
@@ -107,14 +107,14 @@ int main(void)
 				// 人物検知待ち
 				case wait_detect:
 					if (buf[recognize_result]) {
-						printf("human exist\n");
+						printf("human exist for wait_detect\n");
 						status = approval_open;		// ドア開許可
 					}
 					break;
 				// ドア開距離計算待ち
 				case wait_calculate:
 					if (buf[calculate_result]) {
-						printf("calc ok\n");
+						printf("calc ok for wait_calculate\n");
 						status = approval_open;		// ドア開許可
 					}
 					if (buf[taking_now]) {

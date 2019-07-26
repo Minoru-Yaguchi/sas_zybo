@@ -67,8 +67,8 @@ struct stmvl53l0x_parameter {
 #define BESTSHOT_LOWER_LIMIT	(30 * 10 - 20)	/* 30cm - 2cm */
 enum range_state {
 	initial = 0,
-    detect = 1,
-    speed,
+	detect = 1,
+	speed,
 	dooropen,
 	doorclose
 };
@@ -85,6 +85,7 @@ int range_status = initial;
 #define HIGH_SPEED		300
 #define NORMAL_SPPED	50
 #define SLOW_SPEED		20
+#define GATE_DISTANCE	500
 static void * ranging(void * arg);
 static int initial_flag = 0;
 static int mode = 0;
@@ -110,8 +111,8 @@ enum msg_num{
 };
 
 int start_detectdistance(void) {
-    int ret = 0;
-    pthread_t pthread;
+	int ret = 0;
+	pthread_t pthread;
 	printf("start_detectdistance\n");
 
 	if (initial_flag == OFF) {
@@ -130,15 +131,15 @@ int start_detectdistance(void) {
 		initial_flag = ON;
 	}
 
-    range_status = detect;
-    return ret;
+	range_status = detect;
+	return ret;
 }
 
 int detect_speed() {
-    int ret = 0;
+	int ret = 0;
 	printf("detect_speed\n");
 
-    range_status = speed;
+	range_status = speed;
 
 	return ret;
 }
@@ -180,12 +181,12 @@ static void * ranging(void * arg)
 	struct stmvl53l0x_parameter parameter;
 	unsigned int targetDistance=0;
 	int i = 0;
-    char buf[10];
+	char buf[10];
 	uint8_t detect_count = 0;
-    int sample_count = 0;
-    int sample_prev = 0;
-    int sample_diff = 0;
-    int average = 0;
+	int sample_count = 0;
+	int sample_prev = 0;
+	int sample_diff = 0;
+	int average = 0;
 	int average_count = 0;
 	int micro_average = 0;
 	int negative_count = 0;
@@ -204,7 +205,7 @@ static void * ranging(void * arg)
 		close(fd);
 		return NULL;
 	}
-    // xtalkキャリブレーション？
+	// xtalkキャリブレーション？
 	if (mode == MODE_XTAKCALIB)
 	{
 		unsigned int XtalkInt = 0;
@@ -245,7 +246,7 @@ static void * ranging(void * arg)
 		// get rangedata of last measurement to avoid incorrect datum from unempty buffer 
 	}
 
-    // オフセットキャリブレーション？
+	// オフセットキャリブレーション？
 	if (mode == MODE_OFFCALIB) {
 		int offset=0;
 		uint32_t SpadCount=0;
@@ -291,7 +292,7 @@ static void * ranging(void * arg)
 		fprintf(stderr, "get SpadCount is %d ===\nget IsApertureSpads is %u ===\n", SpadCount,IsApertureSpads);
 	}
 
-    // 初期化	
+	// 初期化	
 	if (ioctl(fd, VL53L0X_IOCTL_INIT , NULL) < 0) {
 		fprintf(stderr, "Error: Could not perform VL53L0X_IOCTL_INIT : %s\n", strerror(errno));
 		close(fd);
@@ -301,33 +302,33 @@ static void * ranging(void * arg)
 	// データ取得開始
 	while (1)
 	{
-        // 測距間隔はSAMPLE_INT
+		// 測距間隔はSAMPLE_INT
 		usleep(SAMPLE_INT * 1000);
 		ioctl(fd, VL53L0X_IOCTL_GETDATAS,&range_datas);
 
-        // 何かいた？
-        if (range_status == detect && (MIN_RANGE < range_datas.RangeMilliMeter) && (range_datas.RangeMilliMeter < MAX_RANGE)) {
+		// 何かいた？
+		if (range_status == detect && (MIN_RANGE < range_datas.RangeMilliMeter) && (range_datas.RangeMilliMeter < MAX_RANGE)) {
 			detect_count++;
 			if (detect_count > 5) {
 				printf("achieved five count. go to confirming human mode!\n");
-                buf[detect_result] = true;
-                ret = msgQSend(sas_msg, buf, sizeof(buf));
-                if (ret) {
-                    printf("ranging detect msg send error\n");
-                    return NULL;
-                }
-                buf[0] = 0;
+				buf[detect_result] = true;
+				ret = msgQSend(sas_msg, buf, sizeof(buf));
+				if (ret) {
+					printf("ranging detect msg send error\n");
+					return NULL;
+				}
+				buf[0] = 0;
 				detect_count = 0;
 				range_status = initial;
-            }
-        } else {
+			}
+		} else {
 			detect_count = 0;
 		}
 
-        // ドア開タイミング計算
-        // 本モードでは測距データを10区間サンプリングし、平均移動距離からドアを開けるタイミング(距離)を決定する
-		// ミクロで見るとセンサー値が前後するため、数区間(AVERAGE_NUM分)の平均値を用いることとする
-        if (range_status == speed) {
+		// ドア開タイミング計算
+		// 本モードでは測距データを一定区間サンプリングし、平均移動距離からドアを開けるタイミング(距離)を決定する
+		// ミクロで見るとセンサー値が前後するため、数区間(AVERAGE_NUM分)の平均値を1サンプルとする
+		if (range_status == speed) {
 			if (average_count < AVERAGE_NUM) {
 				micro_average += range_datas.RangeMilliMeter;
 				average_count++;
@@ -369,8 +370,8 @@ static void * ranging(void * arg)
 				sample_count++;
 			}
 			// 所定のデータ量蓄積出来たら平均値を計算
-            if (sample_count == SAMPLE_NUM) {
-                average = sample_diff / (SAMPLE_NUM - 1);
+			if (sample_count == SAMPLE_NUM) {
+				average = sample_diff / (SAMPLE_NUM - 1);
 
 				// 平均移動距離からモーター速度を段階的に設定
 				if (average > ULTRA_SPEED) {
@@ -382,19 +383,23 @@ static void * ranging(void * arg)
 				} else {
 					motor_set_slowspeed();
 				}
-                buf[calculate_result] = true;
-				open_timing = ((1000 / SAMPLE_INT) * average);		  // 到達1秒前に開けるので平均移動距離から1秒間で移動する距離を算出
-				printf("average = %d  distance = %d\n", average, buf[1]);
-                ret = msgQSend(sas_msg, buf, sizeof(buf));
-                if (ret) {
-                    printf("ranging speed msg send error\n");
-                    return NULL;
-                }
-                buf[calculate_result] = 0;
-                sample_count = 0;
+				buf[calculate_result] = true;
+				open_timing = ((1000 / (SAMPLE_INT * AVERAGE_NUM)) * average);		  // 到達1秒前に開けるので平均移動距離から1秒間で移動する距離を算出
+				// ゲートより手前になってしまったらゲートまでの距離を設定
+				if (open_timing < GATE_DISTANCE) {
+					open_timing = GATE_DISTANCE;
+				}
+				printf("average = %d\n", average);
+				ret = msgQSend(sas_msg, buf, sizeof(buf));
+				if (ret) {
+					printf("ranging speed msg send error\n");
+					return NULL;
+				}
+				buf[calculate_result] = 0;
+				sample_count = 0;
 				range_status = initial;
-            }    
-        }
+			}
+		}
 
 		// 所定位置まで来ていたらドアを開ける
 		// 既に所定位置を過ぎていてもドアを開ける
@@ -403,13 +408,24 @@ static void * ranging(void * arg)
 			if (range_datas.RangeMilliMeter < open_timing) {
 				if (!open_wait) {
 					motor_open();
+					open_wait++;
 				}
+			}
 #if 0
-				sleep(5);			// ドアが開き切るまでwait
+			sleep(5);			// ドアが開き切るまでwait
 #else
-				// ドアが開ききるまでメッセージを送信しない
+			// ドアが開ききるまでメッセージを送信しない
+			if (open_wait != 0) {
 				open_wait++;
-				if (open_wait >= OPEN_WAIT_TIME) {
+				int delay = 0;
+				if (average > ULTRA_SPEED) {
+					delay = OPEN_WAIT_TIME / 4;
+				} else if (average > HIGH_SPEED) {
+					delay = OPEN_WAIT_TIME / 2;
+				} else {
+					delay = OPEN_WAIT_TIME;
+				}
+				if (open_wait >= delay) {
 					buf[open_result] = true;
 					ret = msgQSend(sas_msg, buf, sizeof(buf));
 					if (ret) {
@@ -420,8 +436,8 @@ static void * ranging(void * arg)
 					open_wait = 0;
 					range_status = initial;
 				}
-#endif
 			}
+#endif
 		}
 
 		// ドア開中に人がいなくなったらドアを閉める
@@ -464,5 +480,5 @@ static void * ranging(void * arg)
 
 	}
 	close(fd);
-    return NULL;
+	return NULL;
 }

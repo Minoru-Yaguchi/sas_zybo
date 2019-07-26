@@ -75,7 +75,7 @@ void writeJpegFormat(unsigned char* src, size_t width, size_t height, std::strin
 
 int start_camera(void) {
 	int ret = 0;
-    pthread_t pthread;
+	pthread_t pthread;
 	cam_msg = msgQCreate(10, 10);
 	if (!cam_msg) {
 		printf("cam_msg create error...\n");
@@ -83,22 +83,25 @@ int start_camera(void) {
 	}
 
 	ret = pthread_create(&pthread, NULL, &cameramain, NULL);
-    if (ret) {
-        printf("camera thread create error...\n");
-        return -1;
-    }
+	if (ret) {
+		printf("camera thread create error...\n");
+		return -1;
+	}
 
 	return ret;
 }
 
 int ishuman() {
 	char buf[10] = {0};
-	recog_ok = false;
-	buf[start_request] = true;
-	int ret = msgQSend(cam_msg, buf, sizeof(buf));
-	if (ret) {
-		printf("ishuman msg send error\n");
-		return -1;
+	// 処理中はメッセージ送信しない
+	if (!progressing) {
+		recog_ok = false;
+		buf[start_request] = true;
+		int ret = msgQSend(cam_msg, buf, sizeof(buf));
+		if (ret) {
+			printf("ishuman msg send error\n");
+			return -1;
+		}
 	}
 	return 0;
 }
@@ -190,7 +193,7 @@ void* cameramain(void* arg)
     struct timeval st0, et0;
 #else
 	/* 処理時間測定用 */
-    struct timeval st0;
+	struct timeval st0;
 #endif
 	static int num=0;
 

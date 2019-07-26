@@ -71,7 +71,7 @@ int msgQSend(MSG_Q_ID msgQId, char *buffer, int nBytes)
 	struct mq_attr attr;
 	int i_Ret;
 	const int priority=0;
-	
+
 	if ( msgQId == NULL ) {
 		printf("invalid msgQId(NULL)\n");
 		return -1;

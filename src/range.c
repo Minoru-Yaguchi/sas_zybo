@@ -81,6 +81,10 @@ int range_status = initial;
 #define TOLERANCE 5
 #define AVERAGE_NUM 10
 #define OPEN_WAIT_TIME (4000 / SAMPLE_INT)
+#define ULTRA_SPEED		500
+#define HIGH_SPEED		300
+#define NORMAL_SPPED	50
+#define SLOW_SPEED		20
 static void * ranging(void * arg);
 static int initial_flag = 0;
 static int mode = 0;
@@ -90,6 +94,10 @@ static int has_taken = 0;
 int motor_initialize(void);
 int motor_open(void);
 int motor_close(void);
+int motor_set_ultraspeed();
+int motor_set_highspeed();
+int motor_set_normalspeed();
+int motor_set_slowspeed();
 extern MSG_Q_ID sas_msg;
 enum msg_num{
 	detect_result = 0,
@@ -363,6 +371,17 @@ static void * ranging(void * arg)
 			// 所定のデータ量蓄積出来たら平均値を計算
             if (sample_count == SAMPLE_NUM) {
                 average = sample_diff / (SAMPLE_NUM - 1);
+
+				// 平均移動距離からモーター速度を段階的に設定
+				if (average > ULTRA_SPEED) {
+					motor_set_ultraspeed();
+				} else if (average > HIGH_SPEED) {
+					motor_set_highspeed();
+				} else if (average > NORMAL_SPPED) {
+					motor_set_normalspeed();
+				} else {
+					motor_set_slowspeed();
+				}
                 buf[calculate_result] = true;
 				open_timing = ((1000 / SAMPLE_INT) * average);		  // 到達1秒前に開けるので平均移動距離から1秒間で移動する距離を算出
 				printf("average = %d  distance = %d\n", average, buf[1]);

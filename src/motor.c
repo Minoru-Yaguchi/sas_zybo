@@ -94,3 +94,71 @@ void motor_close() {
 
     return;
 }
+
+void motor_set_ultraspeed() {
+	unsigned int spibuf = 0;
+	int ret = 0;
+	printf("ultra speed!\n");
+
+	/* set ultra speed */
+	spibuf  = 0x000000FF & (MNEMONIC_SET_PARAM | REGISTER_MAX_SPEED);
+	spibuf |= 0x00FFFF00 & ((MOTOR_SET_SPEED * 4) << 8);
+	ret = write(spi_fd, &spibuf, 3);
+
+	if (ret == -1) {
+		printf("spi error\n");
+	}
+
+	return;
+}
+
+void motor_set_highspeed() {
+	unsigned int spibuf = 0;
+	int ret = 0;
+	printf("high speed!\n");
+
+	/* set high speed */
+	spibuf  = 0x000000FF & (MNEMONIC_SET_PARAM | REGISTER_MAX_SPEED);
+	spibuf |= 0x00FFFF00 & ((MOTOR_SET_SPEED * 2) << 8);
+	ret = write(spi_fd, &spibuf, 3);
+
+	if (ret == -1) {
+		printf("spi error\n");
+	}
+
+	return;
+}
+
+void motor_set_normalspeed() {
+	unsigned int spibuf = 0;
+	int ret = 0;
+	printf("normal speed!\n");
+
+	/* set normal speed */
+	spibuf  = 0x000000FF & (MNEMONIC_SET_PARAM | REGISTER_MAX_SPEED);
+	spibuf |= 0x00FFFF00 & ((MOTOR_SET_SPEED) << 8);
+	ret = write(spi_fd, &spibuf, 3);
+
+	if (ret == -1) {
+		printf("spi error\n");
+	}
+
+	return;
+}
+
+void motor_set_slowspeed() {
+	unsigned int spibuf = 0;
+	int ret = 0;
+	printf("slow speed!\n");
+
+	/* set slow speed */
+	spibuf  = 0x000000FF & (MNEMONIC_SET_PARAM | REGISTER_MAX_SPEED);
+	spibuf |= 0x00FFFF00 & ((MOTOR_SET_SPEED / 2) << 8);
+	ret = write(spi_fd, &spibuf, 3);
+
+	if (ret == -1) {
+		printf("spi error\n");
+	}
+
+	return;
+}

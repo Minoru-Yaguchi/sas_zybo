@@ -192,6 +192,7 @@ void* cameramain(void* arg)
 	/* 処理時間測定用 */
     struct timeval st0;
 #endif
+	static int num=0;
 
 	while( 1 ) {
 		if (!progressing) {
@@ -233,7 +234,6 @@ void* cameramain(void* arg)
 
 		/*  出力結果の出力用 */
 #ifdef __OUTPUT_FILE__
-		static int num=0;
 		if (taking) {
 			writeJpegFormat(colptr, width_img, height_img, "./output/test_col_" + std::to_string(num) + ".jpg");
 			num++;

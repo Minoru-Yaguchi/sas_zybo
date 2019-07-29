@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "msgQLib.h"
+#include "fpgadrv.h"
 
 #define ThreashC 0
 #define ThreashD 0
@@ -44,13 +45,16 @@ int main(void)
 		return -1;
 	}
 
-	// カメラスタート(いずれstart_process時に実行するようにする)
-	start_camera();
+	// fpga初期化
+	if(init_fpga()){
+		printf("init_fpga error\n");
+		return -1;
+	}
 	
 	while(1){
 		switch(status){
 		case initialize:		start_detectdistance();			break;					// 初期化および物体検知待ち
-		case start_process:		detect_speed();	ishuman();		break;					// 処理開始
+		case start_process:		detect_speed();	start_humandetect();		break;					// 処理開始
 		case wait_detect:										break;					// 何もしない
 		case wait_calculate:	prepare_picture();				break;					// ベストショット取得準備
 		case approval_open:		prepare_picture(); open_door();	break;					// ベストショット取得準備＆ドア開
@@ -158,4 +162,21 @@ int main(void)
 	}
 
 	return 0;
+}
+void sas_msgSend(int num){
+	char buf[10] = {0};
+
+	switch(num){
+	case 0:
+		buf[recognize_result] = 1;
+		msgQSend(sas_msg, buf, sizeof(buf));
+		break;
+	case 1:
+		buf[disappear_object] = 1;
+		msgQSend(sas_msg, buf, sizeof(buf));
+		break;
+	default:
+		printf("unknown num=%d[%s]\n", num, __func__);
+		break;
+	}
 }

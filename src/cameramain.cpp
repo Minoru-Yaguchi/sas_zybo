@@ -137,8 +137,7 @@ int take_picture() {
 
 	// AWS Rekognitionで顔認証
 	picojson::object obj;
-//	if(!recognition_face_detect(outfilename, obj)){
-	if(!recognition_face_detect("test_col_51.jpg", obj)){
+	if(!recognition_face_detect(outfilename, obj)){
 		std::cerr << "face detect is error..." << std::endl;
 		return -1;
 	}else{
@@ -156,7 +155,7 @@ int take_picture() {
 				picojson::object fmobj = farry[i].get<picojson::object>();
 				picojson::object fobj = fmobj["Face"].get<picojson::object>();
 				std::string name = fobj["ExternalImageId"].get<std::string>();
-				std::cout << name << "が向かってきています。ご準備ください。" << std::endl;
+				std::cout << name << " が向かってきています。ご準備ください。" << std::endl;
 			}
 		}
 		std::cout << "*****************************************************" << std::endl;

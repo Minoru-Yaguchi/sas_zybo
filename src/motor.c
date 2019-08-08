@@ -16,7 +16,7 @@ int motor_initialize()
 	unsigned int spibuf = 0;
 	int ret = 0;
 
-	spi_fd = open("/dev/spidev0.0", O_RDWR);
+	spi_fd = open("/dev/spidev1.0", O_RDWR);
 	
 	if (spi_fd < 0)
 	{

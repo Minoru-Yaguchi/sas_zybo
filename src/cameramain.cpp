@@ -11,6 +11,7 @@ extern "C" {
 #include <jpeglib.h>
 #include <string>
 #include "msgQLib.h"
+#include "aws.h"
 
 #define __CALC_HOG__		// 人物検知有効フラグ
 #define __OUTPUT_FILE__	// カメラ画像ダンプフラグ
@@ -20,6 +21,8 @@ extern "C" {
 #define ORIENTATION 9
 #define CELL_SIZE 5
 #define LOOP_COUNT 20
+
+extern CameraDev* cdev;
 
 extern MSG_Q_ID sas_msg;
 MSG_Q_ID cam_msg;
@@ -106,7 +109,7 @@ int ishuman() {
 	return 0;
 }
 
-#if 1
+#if 0
 int take_picture() {
 	taking = true;
 	return 0;
@@ -114,12 +117,52 @@ int take_picture() {
 #else
 extern 
 int take_picture() {
+	static int num = 0;
 	int width_img  = cdev->getImageWidth();		// 主走査サイズを取得
 	int height_img = cdev->getImageHeight();	// 副走査サイズを取得
 	unsigned char* colptr = new unsigned char[width_img * height_img * 3];
 
+	// ベストショット画像のJPEG保存
 	cdev->readCamera(colptr);
-	writeJpegFormat(colptr, width_img, height_img, "./output/test_col_" + std::to_string(num) + ".jpg");
+	std::string outfilename = "test_col_" + std::to_string(num) + ".jpg";
+	writeJpegFormat(colptr, width_img, height_img, "./output/" + outfilename);
+
+	// AWSのS3へアップロード
+	if(!upload_S3_bucket(outfilename)){
+		std::cerr << "image upload to s3 is error..." << std::endl;
+		return -1;
+	}else{
+//		std::cout << "image upload to s3 is end  !!!" << std::endl;
+	}
+
+	// AWS Rekognitionで顔認証
+	picojson::object obj;
+//	if(!recognition_face_detect(outfilename, obj)){
+	if(!recognition_face_detect("test_col_51.jpg", obj)){
+		std::cerr << "face detect is error..." << std::endl;
+		return -1;
+	}else{
+		picojson::object pboj =  obj["payloads"].get<picojson::object>();           // 顔認証結果のみ抜き出し
+		picojson::array farry = pboj["FaceMatches"].get<picojson::array>();         // 顔認証結果のみ抜き出し
+		size_t face_num = farry.size();
+
+		std::cout << "*****************************************************" << std::endl;
+		std::cout << "********************* 顔認証結果 *********************" << std::endl;
+		std::cout << "*****************************************************" << std::endl;
+		if(face_num == 0){
+			std::cout << "不審者が入っています！！！" << std::endl;
+		}else{
+			for(size_t i=0; i<face_num; i++){
+				picojson::object fmobj = farry[i].get<picojson::object>();
+				picojson::object fobj = fmobj["Face"].get<picojson::object>();
+				std::string name = fobj["ExternalImageId"].get<std::string>();
+				std::cout << name << "が向かってきています。ご準備ください。" << std::endl;
+			}
+		}
+		std::cout << "*****************************************************" << std::endl;
+	}
+	num++;
+	taking = true;
 	return 0;
 }
 #endif
@@ -135,7 +178,7 @@ void* cameramain(void* arg)
 	/*********************************************/
 	/* カメラ制御インスタンス生成 + デバイスの初期化 */
 	/*********************************************/
-	CameraDev* cdev = new CameraDev();
+	cdev = new CameraDev();
 	int width_img  = cdev->getImageWidth();		// 主走査サイズを取得
 	int height_img = cdev->getImageHeight();	// 副走査サイズを取得
 	printf("width_img = %d : height_img = %d\n", width_img, height_img);

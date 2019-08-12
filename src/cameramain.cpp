@@ -123,8 +123,17 @@ int take_picture() {
 	unsigned char* colptr = new unsigned char[width_img * height_img * 3];
 
 	// ベストショット画像のJPEG保存
+	time_t timer;
+	struct tm *local;
+	char datetime[20];
+	timer = time(NULL);
+	local = localtime(&timer);
+	//sprintf("datetime, %4d%02d%02d%02d%02d%02d", local->tm_year + 1900, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min, local->tm_sec);
+	strftime(datetime, sizeof(datetime), "%Y%m%d%H%M%S", local);
+	std::string dt(datetime, 14);
 	cdev->readCamera(colptr);
-	std::string outfilename = "test_col_" + std::to_string(num) + ".jpg";
+//	std::string outfilename = "test_col_" + std::to_string(num) + ".jpg";
+	std::string outfilename = dt + ".jpg";
 	writeJpegFormat(colptr, width_img, height_img, "./output/" + outfilename);
 
 	// AWSのS3へアップロード

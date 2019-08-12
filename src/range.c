@@ -85,7 +85,7 @@ int range_status = initial;
 #define HIGH_SPEED		300
 #define NORMAL_SPPED	50
 #define SLOW_SPEED		20
-#define GATE_DISTANCE	500
+#define GATE_DISTANCE	250
 static void * ranging(void * arg);
 static int initial_flag = 0;
 static int mode = 0;
@@ -317,9 +317,12 @@ static void * ranging(void * arg)
 					printf("ranging detect msg send error\n");
 					return NULL;
 				}
+				// 処理後もまだステータスが変わっていない場合はinitialへ(状態の入れ子防止)
+				if (range_status == detect) {
+					range_status = initial;
+				}
 				buf[0] = 0;
 				detect_count = 0;
-				range_status = initial;
 			}
 		} else {
 			detect_count = 0;
@@ -337,10 +340,16 @@ static void * ranging(void * arg)
 			if (average_count == AVERAGE_NUM) {
 				micro_average /= AVERAGE_NUM;
 				average_count = 0;
-				if (micro_average > 3000) {
+				if (micro_average > 4000) {
 					printf("irregular value...\n");
 					sample_count--;
 					negative_count++;
+					// ある程度の区間(MAX_NEGATIVE分)以上前進がなかった場合は計算やり直し
+					if (negative_count > MAX_NEGATIVE) {
+						sample_count = -1;
+						negative_count = 0;
+						sample_diff = 0;
+					}
 				}
 				else if (sample_count == 0) {
 					sample_prev = micro_average;
@@ -395,9 +404,12 @@ static void * ranging(void * arg)
 					printf("ranging speed msg send error\n");
 					return NULL;
 				}
+				// 処理後もまだステータスが変わっていない場合はinitialへ(状態の入れ子防止)
+				if (range_status == speed) {
+					range_status = initial;
+				}
 				buf[calculate_result] = 0;
 				sample_count = 0;
-				range_status = initial;
 			}
 		}
 
@@ -432,9 +444,12 @@ static void * ranging(void * arg)
 						printf("ranging door open msg send error\n");
 						return NULL;
 					}
+					// 処理後もまだステータスが変わっていない場合はinitialへ(状態の入れ子防止)
+					if (range_status == dooropen) {
+						range_status = initial;
+					}
 					buf[open_result] = 0;
 					open_wait = 0;
-					range_status = initial;
 				}
 			}
 #endif
@@ -449,9 +464,14 @@ static void * ranging(void * arg)
 				printf("ranging door close msg send error\n");
 				return NULL;
 			}
+			
+			// 処理後もまだステータスが変わっていない場合はinitialへ(状態の入れ子防止)
+			if (range_status == doorclose) {
+				range_status = initial;
+			}
 			buf[close_result] = 0;
-			range_status = initial;
 			has_taken = OFF;
+			picture = OFF;
 		}
 
 #if 0

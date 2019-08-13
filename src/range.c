@@ -61,10 +61,10 @@ struct stmvl53l0x_parameter {
 };
 
 /* for SAS */
-#define MAX_RANGE				(200 * 10)		/* 200cm */
+#define MAX_RANGE				(70 * 10)		/* 70cm */
 #define MIN_RANGE				(50)			/* 5cm*/
-#define BESTSHOT_UPPER_LIMIT	(30 * 10 + 20)	/* 30cm + 2cm */
-#define BESTSHOT_LOWER_LIMIT	(30 * 10 - 20)	/* 30cm - 2cm */
+#define BESTSHOT_UPPER_LIMIT	(20 * 10 + 20)	/* 20cm + 2cm */
+#define BESTSHOT_LOWER_LIMIT	(20 * 10 - 20)	/* 20cm - 2cm */
 enum range_state {
 	initial = 0,
 	detect = 1,
@@ -75,11 +75,11 @@ enum range_state {
 int range_status = initial;
 #define ON 1
 #define OFF 0
-#define SAMPLE_NUM 5
+#define SAMPLE_NUM 3
 #define SAMPLE_INT 20
 #define MAX_NEGATIVE 5
 #define TOLERANCE 5
-#define AVERAGE_NUM 10
+#define AVERAGE_NUM 5
 #define OPEN_WAIT_TIME (4000 / SAMPLE_INT)
 #define ULTRA_SPEED		500
 #define HIGH_SPEED		300

@@ -128,7 +128,6 @@ int take_picture() {
 	char datetime[20];
 	timer = time(NULL);
 	local = localtime(&timer);
-	//sprintf("datetime, %4d%02d%02d%02d%02d%02d", local->tm_year + 1900, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min, local->tm_sec);
 	strftime(datetime, sizeof(datetime), "%Y%m%d%H%M%S", local);
 	std::string dt(datetime, 14);
 	cdev->readCamera(colptr);

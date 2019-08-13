@@ -92,7 +92,6 @@ void writeJpegFormat(unsigned char* src, size_t width, size_t height, char* file
 
 
 void* adaboostthread(void* arg){
-	char recvmsg=0;
 	int ret;
 	int count=STARTHOG;
 	
@@ -258,8 +257,8 @@ int exec_adaboost(char data){
 	Cell_Y_pat = Cell_Y;
 
 	gettimeofday(&st0, NULL);
-    for(int y = 0; y < Cell_Y; y++){
-    	for(int x = 0; x < Cell_X; x++){
+    for(unsigned int y = 0; y < Cell_Y; y++){
+    	for(unsigned int x = 0; x < Cell_X; x++){
     		HogBin[ y * 256 + x ] = (unsigned short)hogbase[ y * 256 + x ];
     	}
     }
@@ -361,11 +360,8 @@ int exec_adaboost(char data){
 
 void* exec_humandetect(void* args){
 	char recvmsg;
-	int i;
-	struct fpga_data param;
 	struct timeval st0, et0;
 	double time;
-	static int val=0;
 
 	while(1){
 		msgQReceive(fpgamsg, &recvmsg, sizeof(recvmsg));
@@ -374,6 +370,7 @@ void* exec_humandetect(void* args){
 			cdev->readCamera(colptr);
 			cdev->setDisplay(colptr);
 #ifdef GETIMAGE
+			static int val=0;
 			{
 				char path[128]={0};
 				sprintf(path, "./output/camera%d.raw", val);

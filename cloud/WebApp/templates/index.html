@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>履歴一覧</h1>
+<table class="table table-striped table-hover">
+    <tr>
+        <th>人物</th>
+        <th>日時</th>
+        <th>操作</th>
+    </tr>
+    {% for result in results %}
+    <tr>
+        <td>{{ result.Person}}</td>
+        <td>{{ result.DatetimeJPN }}</td>
+        <td>
+            <a href="/view/{{ result.path }}"><button class="btn btn-primary">参照</button></a>
+            </form>
+ 
+        </td>
+    </tr>
+    {% endfor %}
+ 
+</table>
+ 
+{% endblock %}

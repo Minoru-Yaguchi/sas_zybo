@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>結果参照</h1>
+ 
+<h2>{{ result.Datetime }}</h2>
+<h3>{{ result.Person }}</h3>
+<div class="row">
+    <img src="/static/zybo/{{ result.PictureName }}" hspace=20>
+<div class="row">
+    <img src="/static/face/{{ result.Person }}.jpg" hspace=20>
+</div> 
+<br><br>
+{% endblock %}

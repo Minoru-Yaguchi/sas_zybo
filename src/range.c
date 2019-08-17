@@ -87,6 +87,7 @@ int range_status = initial;
 #define SLOW_SPEED		20
 #define GATE_DISTANCE	250
 static void * ranging(void * arg);
+static unsigned int range_data = 0;
 static int initial_flag = 0;
 static int mode = 0;
 static int open_timing = 0;
@@ -172,6 +173,10 @@ int close_door(void) {
 
 	return ret;
 }
+
+unsigned short get_range_data() {
+	return (unsigned short)range_data;
+} 
 
 static void * ranging(void * arg)
 {
@@ -305,6 +310,7 @@ static void * ranging(void * arg)
 		// 測距間隔はSAMPLE_INT
 		usleep(SAMPLE_INT * 1000);
 		ioctl(fd, VL53L0X_IOCTL_GETDATAS,&range_datas);
+		range_data = range_datas.RangeMilliMeter;
 
 		// 何かいた？
 		if (range_status == detect && (MIN_RANGE < range_datas.RangeMilliMeter) && (range_datas.RangeMilliMeter < MAX_RANGE)) {

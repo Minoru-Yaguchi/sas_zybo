@@ -169,6 +169,10 @@ bool recognition_face_detect(std::string file_name, picojson::object& obj)
 
 	// Status Code の取得
 	uint32_t code = static_cast<uint32_t>(tobj["statusCode"].get<double>());
+	// Statusコードがエラーの場合にはメッセージ出力
+	if(code != 200){
+		return false;
+	}
 
 	std::string body_str = picojson::value(tobj["body"]).serialize();
     // 顔認証のJSON出力に不要な'\'文字が含まれているので削除する
@@ -185,11 +189,6 @@ bool recognition_face_detect(std::string file_name, picojson::object& obj)
 		std::cerr << berr << std::endl;
 	}
 	obj  =  vb.get<picojson::object>();                                         // BODY部分のみ抜き出し
-	// Statusコードがエラーの場合にはメッセージ出力
-	if(code != 200){
-		std::cerr << obj["msg"].get<std::string>() << std::endl;
-		return false;
-	}
-
+	
 	return true;
 }
